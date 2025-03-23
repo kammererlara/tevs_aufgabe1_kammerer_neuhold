@@ -1,0 +1,3 @@
+rootProject.name = 'tevs_aufgabe1_kammerer_neuhold'
+include 'Backend'
+

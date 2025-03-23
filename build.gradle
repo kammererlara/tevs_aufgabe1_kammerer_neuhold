@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.group7'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web:3.2.2'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket:3.2.2'
+    implementation 'jakarta.websocket:jakarta.websocket-api:2.2.0'
+    implementation 'org.glassfish.tyrus:tyrus-server:2.1.2'
+    implementation 'org.glassfish.tyrus:tyrus-container-servlet:2.1.2'
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
