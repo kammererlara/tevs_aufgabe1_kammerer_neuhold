@@ -1,36 +1,263 @@
-<!doctype html>
-<html class="no-js" lang="">
-
+<!DOCTYPE html>
+<html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
-  <link rel="stylesheet" href="css/style.css">
-  <meta name="description" content="">
-
-  <meta property="og:title" content="">
-  <meta property="og:type" content="">
-  <meta property="og:url" content="">
-  <meta property="og:image" content="">
-  <meta property="og:image:alt" content="">
-
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon.png">
-
-  <link rel="manifest" href="site.webmanifest">
-  <meta name="theme-color" content="#fafafa">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Status Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .container {
+      max-width: 800px;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-group label {
+      display: block;
+      color: #4a5568;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 0.375rem;
+      border: 1px solid #e2e8f0;
+      box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+      color: #4a5568;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      focus:outline-none;
+      focus:ring-2;
+      focus:ring-blue-500;
+      focus:border-transparent;
+    }
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.375rem;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      focus:outline-none;
+      focus:ring-2;
+      focus:ring-blue-500;
+      focus:ring-opacity-50;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn:hover {
+      background-color: #2c5282;
+      transform: translateY(-2px);
+    }
+    .btn-green { background-color: #38a169; }
+    .btn-green:hover { background-color: #276749; }
+    .btn-blue { background-color: #4299e1; }
+    .btn-blue:hover { background-color: #3182ce; }
+    .btn-red { background-color: #e53e3e; }
+    .btn-red:hover { background-color: #c53030; }
+    .btn-purple { background-color: #805ad5; }
+    .btn-purple:hover { background-color: #6b46c1; }
+    .mt-6 { margin-top: 2.5rem; }
+    .text-center{
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    #status-message {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      font-size: 1rem;
+    }
+    .bg-green-100 { background-color: #f0fdf4; }
+    .text-green-800 { color: #15803d; }
+    .bg-red-100 { background-color: #fef2f2; }
+    .text-red-800 { color: #b91c1c; }
+  </style>
 </head>
+<body class="bg-gray-100 p-8">
+<div class="container bg-white shadow-md rounded-lg p-8">
+  <h1 class="text-2xl font-semibold text-blue-600 text-center mb-6">Status Manager</h1>
+  <div id="status-message" class="mt-6 p-4 bg-yellow-100 text-yellow-800 rounded-md hidden">
+  </div>
+  <div class="form-group">
+    <label for="username" class="block text-gray-700 text-sm font-bold mb-2">Benutzername:</label>
+    <input type="text" id="username" placeholder="Benutzername" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+  </div>
+  <div class="form-group">
+    <label for="status" class="block text-gray-700 text-sm font-bold mb-2">Status Text:</label>
+    <input type="text" id="status" placeholder="Status Text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+  </div>
+  <div class="mt-6 flex flex-col space-y-3">
+    <button id="setStatus" class="btn btn-green">Status setzen</button>
+    <button id="getStatus" class="btn btn-blue">Status abrufen</button>
+    <button id="deleteStatus" class="btn btn-red">Status löschen</button>
+    <button id="updateStatus" class="btn btn-purple">Status aktualisieren</button>
+  </div>
+</div>
+<script>
+  const apiGatewayUrl = 'http://localhost:8080/status-service';
 
-<body>
+  const fehlermeldungen = {
+    'Bitte Benutzername eingeben.': 'Bitte Benutzername eingeben.',
+    'Bitte Benutzername und Status Text eingeben.': 'Bitte Benutzername und Status Text eingeben.',
+    'Fehler beim Setzen des Status': 'Fehler beim Setzen des Status',
+    'Fehler beim Abrufen des Status': 'Fehler beim Abrufen des Status',
+    'Fehler beim Löschen des Status': 'Fehler beim Löschen des Status',
+    'Fehler beim Aktualisieren des Status': 'Fehler beim Aktualisieren des Status'
+  };
 
-  <p>Hello world! This is HTML5 Boilerplate.</p>
-  <input type="text" id="messageInput" placeholder="Nachricht eingeben">
-  <button id="sendButton">Senden</button>
-  <div id="messages"></div>
+  function showStatusMessage(message, type = 'success') {
+    const statusMessageElement = document.getElementById('status-message');
+    const deutscheMessage = fehlermeldungen[message] || message;
+    statusMessageElement.textContent = deutscheMessage;
+    statusMessageElement.className = `mt-6 p-4 rounded-md ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+    statusMessageElement.classList.remove('hidden');
+  }
 
-  <script src="js/app.js"></script>
+  function hideStatusMessage() {
+    document.getElementById('status-message').classList.add('hidden');
+  }
 
+  document.getElementById('setStatus').addEventListener('click', () => {
+    hideStatusMessage();
+    const username = document.getElementById('username').value;
+    const status = document.getElementById('status').value;
+
+    if (!username || !status) {
+      showStatusMessage('Bitte Benutzername und Status Text eingeben.', 'error');
+      return;
+    }
+
+    fetch(`${apiGatewayUrl}/status/${username}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: status })
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            const errorMessage = err.message || 'Fehler beim Setzen des Status';
+            throw new Error(errorMessage);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        showStatusMessage(`Status für Benutzer "${username}" gesetzt: ${data.status}`);
+        document.getElementById('username').value = '';
+        document.getElementById('status').value = '';
+      })
+      .catch(error => {
+        showStatusMessage(error.message, 'error');
+      });
+  });
+
+  document.getElementById('getStatus').addEventListener('click', () => {
+    hideStatusMessage();
+    const username = document.getElementById('username').value;
+
+    if (!username) {
+      showStatusMessage('Bitte Benutzername eingeben.', 'error');
+      return;
+    }
+
+    fetch(`${apiGatewayUrl}/status/${username}`, {
+      method: 'GET'
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            const errorMessage = err.message || 'Fehler beim Abrufen des Status';
+            throw new Error(errorMessage);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        showStatusMessage(`Status für Benutzer "${username}": ${data.status}`);
+      })
+      .catch(error => {
+        showStatusMessage(error.message, 'error');
+      });
+  });
+
+  document.getElementById('deleteStatus').addEventListener('click', () => {
+    hideStatusMessage();
+    const username = document.getElementById('username').value;
+
+    if (!username) {
+      showStatusMessage('Bitte Benutzername eingeben.', 'error');
+      return;
+    }
+
+    fetch(`${apiGatewayUrl}/status/${username}`, {
+      method: 'DELETE'
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            const errorMessage = err.message || 'Fehler beim Löschen des Status';
+            throw new Error(errorMessage);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        showStatusMessage(`Status für Benutzer "${username}" gelöscht.`);
+        document.getElementById('username').value = '';
+        document.getElementById('status').value = '';
+      })
+      .catch(error => {
+        showStatusMessage(error.message, 'error');
+      });
+  });
+
+  document.getElementById('updateStatus').addEventListener('click', () => {
+    hideStatusMessage();
+    const username = document.getElementById('username').value;
+    const status = document.getElementById('status').value;
+
+    if (!username || !status) {
+      showStatusMessage('Bitte Benutzername und Status Text eingeben.', 'error');
+      return;
+    }
+
+    fetch(`${apiGatewayUrl}/status/${username}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: status })
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            const errorMessage = err.message || 'Fehler beim Aktualisieren des Status';
+            throw new Error(errorMessage);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        showStatusMessage(`Status für Benutzer "${username}" aktualisiert: ${data.status}`);
+        document.getElementById('username').value = '';
+        document.getElementById('status').value = '';
+      })
+      .catch(error => {
+        showStatusMessage(error.message, 'error');
+      });
+  });
+</script>
 </body>
-
 </html>
