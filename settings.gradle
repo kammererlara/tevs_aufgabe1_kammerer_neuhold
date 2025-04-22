@@ -1,3 +1,6 @@
 rootProject.name = 'tevs_aufgabe1_kammerer_neuhold'
 include 'Backend'
+include 'APIGateway'
+include 'BackendNode'
+include 'EurekaServer'
 

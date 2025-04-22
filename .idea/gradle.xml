@@ -9,7 +9,10 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/APIGateway" />
             <option value="$PROJECT_DIR$/Backend" />
+            <option value="$PROJECT_DIR$/BackendNode" />
+            <option value="$PROJECT_DIR$/EurekaServer" />
           </set>
         </option>
       </GradleProjectSettings>
