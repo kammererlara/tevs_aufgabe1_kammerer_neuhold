@@ -1,9 +1,14 @@
 package org.kammerer_neuhold;
 
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class UserStatusService {
@@ -11,9 +16,16 @@ public class UserStatusService {
     @Autowired
     private UserStatusRepository userStatusRepository;
 
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    private final String EXCHANGE_NAME = "user.status.exchange";
+    private final String ROUTING_KEY = "user.status.update";
+
     public void createUserStatus(String username, String status) {
-        if (userStatusRepository.findByUsername(username) != null)
-            throw new IllegalArgumentException("User status already exists for username: " + status);
+        if (userStatusRepository.findByUsername(username) != null) {
+            throw new IllegalArgumentException("User status already exists for username: " + username);
+        }
 
         UserStatus userStatus = new UserStatus();
         userStatus.setUsername(username);
@@ -21,36 +33,76 @@ public class UserStatusService {
         userStatus.setUpdated(LocalDateTime.now());
 
         userStatusRepository.save(userStatus);
+
+//        sendUserStatusUpdate(userStatus);
     }
 
     public UserStatus getUserStatus(String username) {
-        if (username == null || username.isEmpty())
+        if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Username cannot be null or empty");
-
+        }
         return userStatusRepository.findByUsername(username);
     }
 
+    @Transactional
     public void updateUserStatus(String username, String status) {
-        if (username == null || username.isEmpty())
+        if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Username cannot be null or empty");
+        }
 
         UserStatus userStatus = userStatusRepository.findByUsername(username);
-        if (userStatus == null)
+        if (userStatus == null) {
             throw new IllegalArgumentException("User status does not exist for username: " + username);
+        }
 
         userStatus.setStatus(status);
         userStatus.setUpdated(LocalDateTime.now());
 
         userStatusRepository.save(userStatus);
+
+//        sendUserStatusUpdate(userStatus);
     }
 
     public void deleteUserStatus(String username) {
-        if (username == null || username.isEmpty())
+        if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Username cannot be null or empty");
-
-        if (userStatusRepository.findByUsername(username) == null)
+        }
+        if (userStatusRepository.findByUsername(username) == null) {
             throw new IllegalArgumentException("User status does not exist for username: " + username);
+        }
 
         userStatusRepository.deleteByUsername(username);
+        //TODO: delete updaten per RabbitMQ? weil updated schwer vergleichbar
+    }
+
+    private void sendUserStatusUpdate(UserStatus userStatus) {
+        rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, userStatus);
+    }
+
+    @RabbitListener(queues = "user.status.queue")
+    @Transactional
+    public void receiveUserStatusUpdate(UserStatus receivedStatus) {
+        UserStatus currentStatus = userStatusRepository.findByUsername(receivedStatus.getUsername());
+        if (currentStatus != null) {
+            if (receivedStatus.getUpdated().isAfter(currentStatus.getUpdated())) {
+                currentStatus.setStatus(receivedStatus.getStatus());
+                currentStatus.setUpdated(receivedStatus.getUpdated());
+                userStatusRepository.save(currentStatus);
+                System.out.println("Status für Benutzer: " + currentStatus.getUsername() + " aktualisiert von RabbitMQ");
+            }
+        } else {
+            userStatusRepository.save(receivedStatus);
+            System.out.println("Status für Benutzer: " + receivedStatus.getUsername() + " neu von RabbitMQ empfangen und gespeichert");
+        }
+    }
+
+    @Scheduled(fixedRate = 60000) // Alle 60 Sekunden
+    public void publishAllUserStatuses() {
+        List<UserStatus> allStatuses = userStatusRepository.findAll();
+        for (UserStatus status : allStatuses) {
+            sendUserStatusUpdate(status);
+        }
+        System.out.println("Alle User-Status über RabbitMQ veröffentlicht");
     }
 }
+

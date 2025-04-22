@@ -107,6 +107,12 @@
   const apiGatewayUrl = 'http://localhost:8080/status-service';
 
   const fehlermeldungen = {
+    'Status created for user ': 'Status erstellt für Benutzer ',
+    'Updated status for user ': 'Status aktualisiert für Benutzer ',
+    'Deleted status for user ': 'Status gelöscht für Benutzer ',
+    'User status already exists for username: ': 'Status existiert bereits für Benutzername: ',
+    'Username cannot be null or empty': 'Benutzername darf nicht null oder leer sein',
+    'User status does not exist for username: ': 'Status existiert nicht für Benutzername: ',
     'Bitte Benutzername eingeben.': 'Bitte Benutzername eingeben.',
     'Bitte Benutzername und Status Text eingeben.': 'Bitte Benutzername und Status Text eingeben.',
     'Fehler beim Setzen des Status': 'Fehler beim Setzen des Status',
@@ -118,7 +124,9 @@
   function showStatusMessage(message, type = 'success') {
     const statusMessageElement = document.getElementById('status-message');
     const deutscheMessage = fehlermeldungen[message] || message;
-    statusMessageElement.textContent = deutscheMessage;
+    const usernameFromMessage = message.includes("Benutzer ") ? message.split("Benutzer ")[1] : "";
+    const finalMessage = deutscheMessage + usernameFromMessage;
+    statusMessageElement.textContent = finalMessage;
     statusMessageElement.className = `mt-6 p-4 rounded-md ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
     statusMessageElement.classList.remove('hidden');
   }
@@ -151,10 +159,10 @@
             throw new Error(errorMessage);
           });
         }
-        return response.json();
+        return response.text();
       })
       .then(data => {
-        showStatusMessage(`Status für Benutzer "${username}" gesetzt: ${data.status}`);
+        showStatusMessage(data);
         document.getElementById('username').value = '';
         document.getElementById('status').value = '';
       })
@@ -211,10 +219,10 @@
             throw new Error(errorMessage);
           });
         }
-        return response.json();
+        return response.text();
       })
       .then(data => {
-        showStatusMessage(`Status für Benutzer "${username}" gelöscht.`);
+        showStatusMessage(data);
         document.getElementById('username').value = '';
         document.getElementById('status').value = '';
       })
@@ -247,10 +255,10 @@
             throw new Error(errorMessage);
           });
         }
-        return response.json();
+        return response.text();
       })
       .then(data => {
-        showStatusMessage(`Status für Benutzer "${username}" aktualisiert: ${data.status}`);
+        showStatusMessage(data);
         document.getElementById('username').value = '';
         document.getElementById('status').value = '';
       })
