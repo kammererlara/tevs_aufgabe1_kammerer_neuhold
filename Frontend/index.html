@@ -193,7 +193,7 @@
         return response.json();
       })
       .then(data => {
-        showStatusMessage(`Status für Benutzer "${username}": ${data.status}`);
+        showStatusMessage(`Status für Benutzer ${username}: ${data.status}`);
       })
       .catch(error => {
         showStatusMessage(error.message, 'error');
