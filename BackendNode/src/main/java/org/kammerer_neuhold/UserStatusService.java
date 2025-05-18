@@ -20,10 +20,15 @@ public class UserStatusService {
     private RabbitTemplate rabbitTemplate;
 
     private final String EXCHANGE_NAME = "user.status.exchange";
-    private final String ROUTING_KEY = "user.status.update";
+    private final String ROUTING_KEY_UPDATE = "user.status.update";
 
     public void createUserStatus(String username, String status) {
-        if (userStatusRepository.findByUsername(username) != null) {
+        if (username == null || username.isEmpty()) {
+            throw new IllegalArgumentException("Username cannot be null or empty");
+        }
+
+        UserStatus existingStatus = userStatusRepository.findByUsername(username);
+        if (existingStatus != null && existingStatus.isActive()) {
             throw new IllegalArgumentException("User status already exists for username: " + username);
         }
 
@@ -31,17 +36,19 @@ public class UserStatusService {
         userStatus.setUsername(username);
         userStatus.setStatus(status);
         userStatus.setUpdated(LocalDateTime.now());
+        userStatus.setActive(true);
 
         userStatusRepository.save(userStatus);
 
-//        sendUserStatusUpdate(userStatus);
+        sendUserStatusUpdate(userStatus);
     }
 
     public UserStatus getUserStatus(String username) {
         if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Username cannot be null or empty");
         }
-        return userStatusRepository.findByUsername(username);
+        UserStatus userStatus = userStatusRepository.findByUsername(username);
+        return (userStatus == null || !userStatus.isActive()) ? null : userStatus;
     }
 
     @Transactional
@@ -51,32 +58,41 @@ public class UserStatusService {
         }
 
         UserStatus userStatus = userStatusRepository.findByUsername(username);
-        if (userStatus == null) {
+        if (userStatus == null || !userStatus.isActive()) {
             throw new IllegalArgumentException("User status does not exist for username: " + username);
         }
 
         userStatus.setStatus(status);
         userStatus.setUpdated(LocalDateTime.now());
+        userStatus.setActive(true);
 
         userStatusRepository.save(userStatus);
 
-//        sendUserStatusUpdate(userStatus);
+        sendUserStatusUpdate(userStatus);
     }
 
     public void deleteUserStatus(String username) {
         if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Username cannot be null or empty");
         }
-        if (userStatusRepository.findByUsername(username) == null) {
+
+        UserStatus userStatus = userStatusRepository.findByUsername(username);
+
+        if (userStatus == null || !userStatus.isActive()) {
             throw new IllegalArgumentException("User status does not exist for username: " + username);
         }
 
-        userStatusRepository.deleteByUsername(username);
-        //TODO: delete updaten per RabbitMQ? weil updated schwer vergleichbar
+        userStatus.setUpdated(LocalDateTime.now());
+        userStatus.setActive(false);
+
+        userStatusRepository.save(userStatus);
+
+        System.out.println("Sende Update-Nachricht für Delete: " + userStatus);
+        sendUserStatusUpdate(userStatus);
     }
 
     private void sendUserStatusUpdate(UserStatus userStatus) {
-        rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, userStatus);
+        rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY_UPDATE, userStatus);
     }
 
     @RabbitListener(queues = "user.status.queue")
@@ -87,6 +103,7 @@ public class UserStatusService {
             if (receivedStatus.getUpdated().isAfter(currentStatus.getUpdated())) {
                 currentStatus.setStatus(receivedStatus.getStatus());
                 currentStatus.setUpdated(receivedStatus.getUpdated());
+                currentStatus.setActive(receivedStatus.isActive());
                 userStatusRepository.save(currentStatus);
                 System.out.println("Status für Benutzer: " + currentStatus.getUsername() + " aktualisiert von RabbitMQ");
             }
@@ -96,7 +113,7 @@ public class UserStatusService {
         }
     }
 
-    @Scheduled(fixedRate = 60000) // Alle 60 Sekunden
+    @Scheduled(fixedRate = 500) // Alle 0,5 Sekunden
     public void publishAllUserStatuses() {
         List<UserStatus> allStatuses = userStatusRepository.findAll();
         for (UserStatus status : allStatuses) {

@@ -3,7 +3,7 @@ const apiGatewayUrl = 'http://localhost:8080/status-service';
 function showStatusMessage(message, type = 'success') {
   const statusMessageElement = document.getElementById('status-message');
   statusMessageElement.textContent = message;
-  statusMessageElement.className = `mt-4 p-4 rounded-md ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+  statusMessageElement.className = `mt-6 p-4 rounded-md ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
   statusMessageElement.classList.remove('hidden');
 }
 
@@ -14,10 +14,10 @@ function hideStatusMessage() {
 document.getElementById('setStatus').addEventListener('click', () => {
   hideStatusMessage();
   const username = document.getElementById('username').value;
-  const statusText = document.getElementById('statusText').value;
+  const status = document.getElementById('status').value;
 
-  if (!username || !statusText) {
-    showStatusMessage('Bitte Benutzername und Status Text eingeben.', 'error');
+  if (!username || !status) {
+    showStatusMessage('Please enter username and status text.', 'error');
     return;
   }
 
@@ -26,18 +26,21 @@ document.getElementById('setStatus').addEventListener('click', () => {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ statusText: statusText })
+    body: status
   })
     .then(response => {
       if (!response.ok) {
-        return response.json().then(err => { throw new Error(err.message || 'Fehler beim Setzen des Status') });
+        return response.json().then(err => {
+          const errorMessage = err.message || 'Failed to set status';
+          throw new Error(errorMessage);
+        });
       }
-      return response.json();
+      return response.text();
     })
     .then(data => {
-      showStatusMessage(`Status für Benutzer "${username}" gesetzt: ${data.statusText}`);
+      showStatusMessage(data);
       document.getElementById('username').value = '';
-      document.getElementById('statusText').value = '';
+      document.getElementById('status').value = '';
     })
     .catch(error => {
       showStatusMessage(error.message, 'error');
@@ -45,12 +48,11 @@ document.getElementById('setStatus').addEventListener('click', () => {
 });
 
 document.getElementById('getStatus').addEventListener('click', () => {
-  console.log('Fetching status for username:', username); // Debugging line
   hideStatusMessage();
   const username = document.getElementById('username').value;
 
   if (!username) {
-    showStatusMessage('Bitte Benutzername eingeben.', 'error');
+    showStatusMessage('Please enter username.', 'error');
     return;
   }
 
@@ -59,12 +61,15 @@ document.getElementById('getStatus').addEventListener('click', () => {
   })
     .then(response => {
       if (!response.ok) {
-        return response.json().then(err => { throw new Error(err.message || 'Fehler beim Abrufen des Status') });
+        return response.json().then(err => {
+          const errorMessage = err.message || 'Failed to get status';
+          throw new Error(errorMessage);
+        });
       }
       return response.json();
     })
     .then(data => {
-      showStatusMessage(`Status für Benutzer "${username}": ${data.statusText}`);
+      showStatusMessage(`Status for user ${username}: ${data.status}`);
     })
     .catch(error => {
       showStatusMessage(error.message, 'error');
@@ -76,7 +81,7 @@ document.getElementById('deleteStatus').addEventListener('click', () => {
   const username = document.getElementById('username').value;
 
   if (!username) {
-    showStatusMessage('Bitte Benutzername eingeben.', 'error');
+    showStatusMessage('Please enter username.', 'error');
     return;
   }
 
@@ -85,14 +90,17 @@ document.getElementById('deleteStatus').addEventListener('click', () => {
   })
     .then(response => {
       if (!response.ok) {
-        return response.json().then(err => { throw new Error(err.message || 'Fehler beim Löschen des Status') });
+        return response.json().then(err => {
+          const errorMessage = err.message || 'Failed to delete status';
+          throw new Error(errorMessage);
+        });
       }
-      return response.json();
+      return response.text();
     })
     .then(data => {
-      showStatusMessage(`Status für Benutzer "${username}" gelöscht.`);
+      showStatusMessage(data);
       document.getElementById('username').value = '';
-      document.getElementById('statusText').value = '';
+      document.getElementById('status').value = '';
     })
     .catch(error => {
       showStatusMessage(error.message, 'error');
@@ -102,10 +110,10 @@ document.getElementById('deleteStatus').addEventListener('click', () => {
 document.getElementById('updateStatus').addEventListener('click', () => {
   hideStatusMessage();
   const username = document.getElementById('username').value;
-  const statusText = document.getElementById('statusText').value;
+  const status = document.getElementById('status').value;
 
-  if (!username || !statusText) {
-    showStatusMessage('Bitte Benutzername und Status Text eingeben.', 'error');
+  if (!username || !status) {
+    showStatusMessage('Please enter username and status text.', 'error');
     return;
   }
 
@@ -114,18 +122,21 @@ document.getElementById('updateStatus').addEventListener('click', () => {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ statusText: statusText })
+    body: status
   })
     .then(response => {
       if (!response.ok) {
-        return response.json().then(err => { throw new Error(err.message || 'Fehler beim Aktualisieren des Status') });
+        return response.json().then(err => {
+          const errorMessage = err.message || 'Failed to update status';
+          throw new Error(errorMessage);
+        });
       }
-      return response.json();
+      return response.text();
     })
     .then(data => {
-      showStatusMessage(`Status für Benutzer "${username}" aktualisiert: ${data.statusText}`);
+      showStatusMessage(data);
       document.getElementById('username').value = '';
-      document.getElementById('statusText').value = '';
+      document.getElementById('status').value = '';
     })
     .catch(error => {
       showStatusMessage(error.message, 'error');

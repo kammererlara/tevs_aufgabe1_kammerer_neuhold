@@ -1,5 +1,6 @@
 package org.kammerer_neuhold;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,7 @@ public class StatusController {
         }
     }
 
+    @Transactional
     @DeleteMapping
     public ResponseEntity<?> deleteStatus(@PathVariable String username) {
         try {

@@ -1,68 +1,31 @@
-/* styles.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-.container {
-  max-width: 2xl;
-  margin-left: auto;
-  margin-right: auto;
-  background-color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-  padding: 2rem;
+body {
+  font-family: 'Inter', sans-serif;
 }
 
-h1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #3b82f6;
-  text-align: center;
+.container {
+  max-width: 800px;
+}
+
+.form-group {
   margin-bottom: 1.5rem;
 }
 
-#status-message {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 0.375rem;
-  display: none; /* Anfangs ausgeblendet */
-}
-
-.bg-green-100 {
-  background-color: #f0fdf4;
-}
-
-.text-green-800 {
-  color: #15803d;
-}
-
-.bg-red-100 {
-  background-color: #fef2f2;
-}
-
-.text-red-800 {
-  color: #b91c1c;
-}
-
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
-label {
+.form-group label {
   display: block;
   color: #4a5568;
   font-size: 0.875rem;
-  font-weight: bold;
+  font-weight: 600;
   margin-bottom: 0.5rem;
 }
 
-input[type="text"] {
+.form-group input {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.75rem;
   border-radius: 0.375rem;
   border: 1px solid #e2e8f0;
   box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   color: #4a5568;
+  font-size: 1rem;
   line-height: 1.5rem;
   focus:outline-none;
   focus:ring-2;
@@ -70,59 +33,107 @@ input[type="text"] {
   focus:border-transparent;
 }
 
-button {
-  padding: 0.75rem 1rem;
+.btn {
+  padding: 0.75rem 1.5rem;
   border-radius: 0.375rem;
-  font-weight: bold;
+  font-weight: 600;
   color: white;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
   focus:outline-none;
   focus:ring-2;
   focus:ring-blue-500;
   focus:ring-opacity-50;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
-button:hover {
-  filter: brightness(95%);
+.btn:hover {
+  background-color: #2c5282;
+  transform: translateY(-2px);
 }
 
-#setStatus {
-  background-color: #16a34a;
+.btn-green { background-color: #38a169; }
+.btn-green:hover { background-color: #276749; }
+.btn-blue { background-color: #4299e1; }
+.btn-blue:hover { background-color: #3182ce; }
+.btn-red { background-color: #e53e3e; }
+.btn-red:hover { background-color: #c53030; }
+.btn-purple { background-color: #805ad5; }
+.btn-purple:hover { background-color: #6b46c1; }
+
+.mt-6 { margin-top: 2.5rem; }
+
+.text-center { text-align: center; }
+
+.hidden { display: none; }
+
+#status-message {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 1rem;
 }
 
-#setStatus:hover {
-  background-color: #14532d;
+.bg-green-100 { background-color: #f0fdf4; }
+.bg-red-100 { background-color: #fef2f2; }
+.bg-yellow-100 { background-color: #fcfbeb; }
+.bg-gray-100 { background-color: #f7fafc; }
+
+.text-green-800 { color: #15803d; }
+.text-red-800 { color: #b91c1c; }
+.text-yellow-800 { color: #d97706; }
+.text-gray-700 { color: #4a5568; }
+
+.text-sm { font-size: 0.875rem; }
+.font-bold { font-weight: 700; }
+
+.mb-2 { margin-bottom: 0.5rem; }
+
+.shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+
+.appearance-none { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+
+.border { border-width: 1px; border-color: #e2e8f0; }
+
+.rounded { border-radius: 0.25rem; }
+
+.w-full { width: 100%; }
+
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+
+.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+
+.leading-tight { line-height: 1.5; }
+
+.focus:outline-none { outline: 0; }
+
+.focus:shadow-outline { box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); }
+
+.flex { display: flex; }
+
+.flex-col { flex-direction: column; }
+
+.space-y-3 > :not(:first-child) { margin-top: 0.75rem; }
+
+.btn.flex-grow {
+  flex-grow: 1;
+  margin-right: 0.5rem;
 }
 
-#getStatus {
-  background-color: #3b82f6;
+.btn.flex-grow:last-child {
+  margin-right: 0;
 }
 
-#getStatus:hover {
-  background-color: #2563eb;
+.mt-6.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
 }
 
-#deleteStatus {
-  background-color: #dc2626;
-}
-
-#deleteStatus:hover {
-  background-color: #b91c1c;
-}
-
-#updateStatus {
-  background-color: #8b5cf6;
-}
-
-#updateStatus:hover {
-  background-color: #7c3aed;
-}
-
-.flex-col {
-  flex-direction: column;
-}
-
-.space-y-3 > * + * {
-  margin-top: 0.75rem;
+html, body, .container, .form-group input {
+  box-sizing: border-box;
 }

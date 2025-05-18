@@ -11,12 +11,10 @@ import java.time.LocalDateTime;
 @Setter
 public class UserStatus {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-
-    @Column(nullable = false, unique = true)
+    @Column
     private String username;
     private String status;
     @Column(nullable = false)
     private LocalDateTime updated;
+    private boolean active;
 }
