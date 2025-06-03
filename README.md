@@ -19,7 +19,7 @@ Dieses Projekt implementiert ein verteiltes Status-Server-System mit mehreren gl
   Message-Broker für die synchrone oder asynchrone Kommunikation und Replikation zwischen den Backend-Nodes.
   Sorgt für Fehlertoleranz und Konsistenz des Systems durch Event-basierte Kommunikation.
 
-##Merkmale
+## Merkmale
 + Horizontale Skalierbarkeit: Neue Backend-Nodes können einfach hinzugefügt werden.
 + Fehlertoleranz: Fällt ein Node aus, übernimmt ein anderer.
 + Konsistenz durch Messaging: Replikation über RabbitMQ gewährleistet synchronen Status aller Nodes.
