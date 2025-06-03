@@ -98,7 +98,10 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8761/eureka
     depends_on:
       - eurekaserver
-      - backendnode
+      - backendnode1
+      - backendnode2
+      - backendnode3
+      - backendnode4
     networks:
       - tevs-network
 
