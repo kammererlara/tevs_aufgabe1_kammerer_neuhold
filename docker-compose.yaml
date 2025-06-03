@@ -1,0 +1,119 @@
+﻿version: "3.8"
+
+services:
+  eurekaserver:
+    build:
+      context: ./EurekaServer
+      dockerfile: Dockerfile
+    container_name: eurekaserver
+    ports:
+      - "8761:8761"
+    networks:
+      - tevs-network
+
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - tevs-network
+
+  backendnode1:
+    build:
+      context: ./BackendNode
+      dockerfile: Dockerfile
+    container_name: backendnode1
+    ports:
+      - "8081:8081"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8761/eureka
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - eurekaserver
+      - rabbitmq
+    networks:
+      - tevs-network
+
+  backendnode2:
+    build:
+      context: ./BackendNode
+      dockerfile: Dockerfile
+    container_name: backendnode2
+    ports:
+      - "8082:8081"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8761/eureka
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - eurekaserver
+      - rabbitmq
+    networks:
+      - tevs-network
+
+  backendnode3:
+    build:
+      context: ./BackendNode
+      dockerfile: Dockerfile
+    container_name: backendnode3
+    ports:
+      - "8083:8081"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8761/eureka
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - eurekaserver
+      - rabbitmq
+    networks:
+      - tevs-network
+
+  backendnode4:
+    build:
+      context: ./BackendNode
+      dockerfile: Dockerfile
+    container_name: backendnode4
+    ports:
+      - "8084:8081"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8761/eureka
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - eurekaserver
+      - rabbitmq
+    networks:
+      - tevs-network
+
+  apigateway:
+    build:
+      context: ./APIGateway
+      dockerfile: Dockerfile
+    container_name: apigateway
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8761/eureka
+    depends_on:
+      - eurekaserver
+      - backendnode
+    networks:
+      - tevs-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - apigateway
+    networks:
+      - tevs-network
+
+networks:
+  tevs-network:
+    driver: bridge
