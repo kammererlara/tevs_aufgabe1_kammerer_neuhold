@@ -10,6 +10,12 @@ services:
       - "8761:8761"
     networks:
       - tevs-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
   rabbitmq:
     image: rabbitmq:latest
@@ -97,11 +103,16 @@ services:
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8761/eureka
     depends_on:
-      - eurekaserver
-      - backendnode1
-      - backendnode2
-      - backendnode3
-      - backendnode4
+      eurekaserver:
+        condition: service_healthy
+      backendnode1:
+        condition: service_started
+      backendnode2:
+        condition: service_started
+      backendnode3:
+        condition: service_started
+      backendnode4:
+        condition: service_started
     networks:
       - tevs-network
 
