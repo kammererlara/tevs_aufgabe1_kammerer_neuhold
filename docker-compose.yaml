@@ -105,13 +105,25 @@ services:
     networks:
       - tevs-network
 
-  frontend:
+  frontend1:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: frontend
+    container_name: frontend1
     ports:
       - "3000:80"
+    depends_on:
+      - apigateway
+    networks:
+      - tevs-network
+
+  frontend2:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend2
+    ports:
+      - "3001:80"
     depends_on:
       - apigateway
     networks:
